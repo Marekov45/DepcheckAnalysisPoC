@@ -12,6 +12,7 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FileReader;
+import java.lang.reflect.Field;
 
 public class ActualDependencyAnalyserPlugin extends AbstractAnalyzeMojo {
 
@@ -36,8 +37,20 @@ public class ActualDependencyAnalyserPlugin extends AbstractAnalyzeMojo {
         }
         MavenProject project = new MavenProject(model);
 
+// compile phase execute hier umsetzen (nicht test compile) um skipping project zu entfernen und dann dependencies als string ausgeben lassen mavenprojectbuilder
+      // dependencies als string ausgeben
 
         AnalyzeMojo mojo = new AnalyzeMojo();
+        try {
+            Field projectField = mojo.getClass().getSuperclass().getDeclaredField("project");
+            projectField.setAccessible(true);
+            projectField.set(mojo,project);
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
 
 
         try {

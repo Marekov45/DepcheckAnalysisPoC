@@ -6,10 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="actualdependencyanalyzer" />
-        <module name="wolvesdomain" />
         <module name="actualdependencyanalysisresultconsumer" />
+        <module name="actual-dependency-analyzer" />
+        <module name="actual-dependency-analysis-stats-generator" />
+        <module name="wolvesdomain" />
+        <module name="wolves-domain" />
         <module name="actualdependencyanalysisstatsgenerator" />
+        <module name="actualdependencyanalyzer" />
+        <module name="actual-dependency-analysis-result-consumer" />
       </profile>
     </annotationProcessing>
   </component>
