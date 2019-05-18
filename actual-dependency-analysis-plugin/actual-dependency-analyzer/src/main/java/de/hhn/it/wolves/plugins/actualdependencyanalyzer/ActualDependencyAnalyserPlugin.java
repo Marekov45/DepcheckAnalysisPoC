@@ -2,6 +2,9 @@ package de.hhn.it.wolves.plugins.actualdependencyanalyzer;
 
 
 import de.hhn.it.wolves.domain.*;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.DefaultArtifactRepository;
+import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.AbstractMojo;
@@ -9,27 +12,45 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.dependency.analyze.*;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.shared.invoker.*;
+import org.codehaus.plexus.context.Context;
+import org.codehaus.plexus.context.ContextException;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ActualDependencyAnalyserPlugin extends AbstractAnalyzeMojo {
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MavenInvocationException {
         RepositoryInfo repositoryInfo = new RepositoryInfo();
         ActualDependencyAnalyserPlugin plugin = new ActualDependencyAnalyserPlugin();
         plugin.analyseRepository(repositoryInfo);
     }
 
 
-    public AnalysisResult analyseRepository(RepositoryInfo info) {
+    public AnalysisResult analyseRepository(RepositoryInfo info) throws MavenInvocationException {
         Model model = null;
         FileReader reader = null;
+        File f = null;
+
         MavenXpp3Reader mavenreader = new MavenXpp3Reader();
         try {
-            File f = new File("C:/Users/Marvin/Documents/GitHub/example-java-maven/pom.xml");
+             f = new File("C:/Users/Marvin/Documents/GitHub/example-java-maven/pom.xml");
             reader = new FileReader(f);
             model = mavenreader.read(reader);
             model.setPomFile(f);
@@ -37,14 +58,30 @@ public class ActualDependencyAnalyserPlugin extends AbstractAnalyzeMojo {
         }
         MavenProject project = new MavenProject(model);
 
-// compile phase execute hier umsetzen (nicht test compile) um skipping project zu entfernen und dann dependencies als string ausgeben lassen mavenprojectbuilder
-      // dependencies als string ausgeben
+        InvocationRequest request = new DefaultInvocationRequest();
+        request.setPomFile(new File("C:/Users/Marvin/Documents/GitHub/example-java-maven/pom.xml"));
+        request.setGoals(Collections.singletonList("compile"));
 
-        AnalyzeMojo mojo = new AnalyzeMojo();
+        Invoker invoker = new DefaultInvoker();
+        try {
+            invoker.execute(request);
+        } catch (MavenInvocationException e) {
+            e.printStackTrace();
+        }
+        File outputDirectory = new File("C:/Users/Marvin/Documents/GitHub/example-java-maven/target");
+      //  String analyzer = "maven-dependency-analyzer";
+
+       AnalyzeMojo mojo = new AnalyzeMojo();
         try {
             Field projectField = mojo.getClass().getSuperclass().getDeclaredField("project");
             projectField.setAccessible(true);
             projectField.set(mojo,project);
+            Field outputDirectoryField = mojo.getClass().getSuperclass().getDeclaredField("outputDirectory");
+            outputDirectoryField.setAccessible(true);
+            outputDirectoryField.set(mojo,outputDirectory);
+            //Field analyzerField = mojo.getClass().getSuperclass().getDeclaredField("analyzer");
+           // analyzerField.setAccessible(true);
+           // analyzerField.set(mojo,analyzer);
 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
